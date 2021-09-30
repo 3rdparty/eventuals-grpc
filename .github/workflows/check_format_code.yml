@@ -13,4 +13,8 @@ jobs:
       uses: jidicula/clang-format-action@v4.0.0
       with:
         clang-format-version: '12'
-        check-path: '.'
+        check-path: '.'  
+    - name: Install prototool
+      run: brew install prototool  
+    - name: Check all .proto files on correct code format
+      run: chmod +x tools/check_style_proto && tools/./check_style_proto  
