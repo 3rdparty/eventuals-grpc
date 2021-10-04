@@ -1,6 +1,12 @@
 name: C/C++ Style Check
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "master"
 jobs:
   formatting-check:
     name: Formatting Check
@@ -13,8 +19,6 @@ jobs:
       uses: jidicula/clang-format-action@v4.0.0
       with:
         clang-format-version: '12'
-        check-path: '.'  
-    - name: Install prototool
-      run: brew install prototool  
+        check-path: '.'   
     - name: Check all .proto files on correct code format
       run: chmod +x tools/check_style_proto && tools/./check_style_proto  
