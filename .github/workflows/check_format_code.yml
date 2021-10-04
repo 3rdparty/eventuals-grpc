@@ -20,3 +20,5 @@ jobs:
       with:
         clang-format-version: '12'
         check-path: '.'
+    - name: Check all .proto files on correct code format
+      run: chmod +x tools/check_style_proto.sh && tools/./check_style_proto.sh
