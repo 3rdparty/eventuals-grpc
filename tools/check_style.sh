@@ -2,7 +2,7 @@
 
 # We need check_lines() from this script cause we want to check if any line has
 # more than 80 characters.
-source ./tools/correct_line.sh
+source ./tools/check_line_length.sh
 
 # Check for existence of clang-format.
 which clang-format >/dev/null
@@ -11,16 +11,14 @@ if [[ $? != 0 ]]; then
   exit 1
 fi
 
-# Find all .proto files in the root directory.
-current_directory=$(pwd)
-printf "Finding all .proto files in the %s\n" "${current_directory} directory..."
+# Find all .cc, .h, .proto files in the root directory.
 IFS=:
-proto_file_paths=($(find . -type f -name "*.proto"))
+proto_file_paths=$(find . -name '*.cc' -o -name '*.cpp' -o -name '*.h' -o -name '*.proto')
 unset IFS
 
 # Check every .proto file on correct code style.
 check(){
-  if [[ ${#proto_file_paths[@]} == 0 ]]; then
+  if [[ ${#proto_file_paths} == 0 ]]; then
     printf "There are no .proto files to check!\n"
     exit 0
   fi  
@@ -52,7 +50,7 @@ check(){
     fi
 
     # Check if any line has more than 80 characters.
-    check_lines ${file}
+    check_lines "${file}"
     status_exit=$(echo $?)
   done
   exit ${status_exit}

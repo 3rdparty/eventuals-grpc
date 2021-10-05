@@ -5,14 +5,13 @@
  check_lines(){
     status_exit=0
     local -i number=1
-    IFS='\n'
-    while read line; do
+    while IFS= read -r line; do
       local -i length=${#line}
       if (( length > 80 )); then
         status_exit=1
         tput bold
         printf "%s:%i:%i: " "$1" "${number}" "${length}"
-        tput setaf 1 # Red
+        tput setaf 1 # Red.
         printf "error: "
         tput sgr0 # Reset terminal.
         tput bold
@@ -21,7 +20,6 @@
         printf "%s\n" "${line}"
       fi
       (( number++ ))
-    done < $1
-    unset IFS
+    done < "$1"
     return ${status_exit}
  }
