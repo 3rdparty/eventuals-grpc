@@ -1,0 +1,57 @@
+# Workflow for building and testing eventuals-grpc on macOS, Ubuntu
+# and Windows.  
+name: Build and Run all tests
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - "**.md"
+  
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      # Checkout the repository under $GITHUB_WORKSPACE.
+      - uses: actions/checkout@v2
+
+      - name: Check for bazel
+        run: bazel --version
+
+      - name: Build step on macOS or Ubuntu
+        if: ${{ matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest' }}
+        run: bazel build --spawn_strategy=local --copt="-g" --strip="never" :grpc
+
+      - name: Debug Build using tmate (if failure)
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3    
+
+      - name: Build step on Windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: bazel build --spawn_strategy=local --strip="never" :grpc  
+
+      - name: Debug Build using tmate (if failure)
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Test step on macOS or Ubuntu
+        if: ${{ matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest' }} 
+        run: bazel test --spawn_strategy=local --copt="-g" --strip="never" --test_output=errors test:grpc --test_arg=--gtest_shuffle --test_arg=--gtest_repeat=100
+
+      - name: Debug Test using tmate (if failure)
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Test step on Windows
+        if: ${{ matrix.os == 'windows-latest' }} 
+        run: bazel test --spawn_strategy=local --strip="never" --test_output=errors test:grpc --test_arg=--gtest_shuffle --test_arg=--gtest_repeat=100
+
+      - name: Debug Test using tmate (if failure)
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3  
