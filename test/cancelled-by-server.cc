@@ -4,6 +4,7 @@
 #include "eventuals/let.h"
 #include "eventuals/then.h"
 #include "examples/protos/helloworld.grpc.pb.h"
+#include "grpcpp/client_context.h"
 #include "gtest/gtest.h"
 #include "test/test.h"
 

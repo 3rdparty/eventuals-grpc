@@ -2,6 +2,7 @@
 #include "eventuals/grpc/server.h"
 #include "eventuals/let.h"
 #include "examples/protos/helloworld.grpc.pb.h"
+#include "grpcpp/client_context.h"
 #include "gtest/gtest.h"
 #include "test/test.h"
 
@@ -42,8 +43,10 @@ TEST_F(EventualsGrpcTest, Unimplemented) {
       grpc::InsecureChannelCredentials(),
       pool.Borrow());
 
+  ::grpc::ClientContext context;
+
   auto call = [&]() {
-    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello")
+    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello", &context)
         | Then(Let([](auto& call) {
              return call.Finish();
            }));

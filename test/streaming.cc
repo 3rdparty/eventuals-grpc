@@ -8,6 +8,7 @@
 #include "eventuals/map.h"
 #include "eventuals/then.h"
 #include "examples/protos/keyvaluestore.grpc.pb.h"
+#include "grpcpp/client_context.h"
 #include "gtest/gtest.h"
 #include "test/test.h"
 
@@ -105,11 +106,13 @@ void test_client_behavior(Handler handler) {
       grpc::InsecureChannelCredentials(),
       pool.Borrow());
 
+  ::grpc::ClientContext context;
+
   auto call = [&]() {
     return client.Call<
                Stream<keyvaluestore::Request>,
                Stream<keyvaluestore::Response>>(
-               "keyvaluestore.KeyValueStore.GetValues")
+               "keyvaluestore.KeyValueStore.GetValues", &context)
         | std::move(handler);
   };
 

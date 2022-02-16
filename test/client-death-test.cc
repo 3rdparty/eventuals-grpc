@@ -74,8 +74,10 @@ TEST_F(EventualsGrpcTest, ClientDeathTest) {
         grpc::InsecureChannelCredentials(),
         pool.Borrow());
 
+    ::grpc::ClientContext context;
+
     auto call = [&]() {
-      return client.Call<Greeter, HelloRequest, HelloReply>("SayHello")
+      return client.Call<Greeter, HelloRequest, HelloReply>("SayHello", &context)
           | Then([](auto&& call) {
                exit(1);
              });

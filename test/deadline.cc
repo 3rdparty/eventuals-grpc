@@ -6,6 +6,7 @@
 #include "eventuals/terminal.h"
 #include "eventuals/then.h"
 #include "examples/protos/helloworld.grpc.pb.h"
+#include "grpcpp/client_context.h"
 #include "gtest/gtest.h"
 #include "test/test.h"
 
@@ -63,22 +64,19 @@ TEST_F(EventualsGrpcTest, Deadline) {
       grpc::InsecureChannelCredentials(),
       pool.Borrow());
 
-  auto call = [&]() {
-    return client.Context()
-        | Then([&](auto* context) {
-             auto now = std::chrono::system_clock::now();
-             context->set_deadline(now + std::chrono::milliseconds(100));
+  ::grpc::ClientContext context;
 
-             return client.Call<Greeter, HelloRequest, HelloReply>(
-                        "SayHello",
-                        context)
-                 | Then(Let([](auto& call) {
-                      HelloRequest request;
-                      request.set_name("emily");
-                      return call.Writer().WriteLast(request)
-                          | call.Finish();
-                    }));
-           });
+  auto call = [&]() {
+    auto now = std::chrono::system_clock::now();
+    context.set_deadline(now + std::chrono::milliseconds(100));
+
+    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello", &context)
+        | Then(Let([](auto& call) {
+             HelloRequest request;
+             request.set_name("emily");
+             return call.Writer().WriteLast(request)
+                 | call.Finish();
+           }));
   };
 
   auto status = *call();

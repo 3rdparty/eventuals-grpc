@@ -233,14 +233,6 @@ class Client {
     : channel_(::grpc::CreateChannel(target, credentials)),
       pool_(std::move(pool)) {}
 
-  auto Context() {
-    return Eventual<::grpc::ClientContext*>()
-        .context(eventuals::Context<::grpc::ClientContext>())
-        .start([](auto& context, auto& k) {
-          k.Start(context.get());
-        });
-  }
-
   template <typename Service, typename Request, typename Response>
   auto Call(
       const std::string& name,
@@ -351,35 +343,6 @@ class Client {
             }
           }
         });
-  }
-
-  template <typename Service, typename Request, typename Response>
-  auto Call(
-      const std::string& name,
-      std::optional<std::string> host = std::nullopt) {
-    static_assert(
-        IsService<Service>::value,
-        "expecting \"service\" type to be a protobuf 'Service'");
-
-    return Call<Request, Response>(
-        std::string(Service::service_full_name()) + "." + name,
-        std::move(host));
-  }
-
-  template <typename Request, typename Response>
-  auto Call(
-      std::string name,
-      std::optional<std::string> host = std::nullopt) {
-    return Context()
-        | Then([this,
-                name = std::move(name),
-                host = std::move(host)](
-                   ::grpc::ClientContext* context) mutable {
-             return Call<Request, Response>(
-                 std::move(name),
-                 context,
-                 std::move(host));
-           });
   }
 
  private:

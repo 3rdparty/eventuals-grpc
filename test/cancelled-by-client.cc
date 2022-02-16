@@ -4,6 +4,7 @@
 #include "eventuals/let.h"
 #include "eventuals/then.h"
 #include "examples/protos/helloworld.grpc.pb.h"
+#include "grpcpp/client_context.h"
 #include "gtest/gtest.h"
 #include "test/test.h"
 
@@ -60,8 +61,10 @@ TEST_F(EventualsGrpcTest, CancelledByClient) {
       grpc::InsecureChannelCredentials(),
       pool.Borrow());
 
+  ::grpc::ClientContext context;
+
   auto call = [&]() {
-    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello")
+    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello", &context)
         | Then(Let([&](auto& call) {
              call.context()->TryCancel();
              return call.Finish();

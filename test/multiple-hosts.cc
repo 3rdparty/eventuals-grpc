@@ -5,6 +5,7 @@
 #include "eventuals/terminal.h"
 #include "eventuals/then.h"
 #include "examples/protos/helloworld.grpc.pb.h"
+#include "grpcpp/client_context.h"
 #include "gtest/gtest.h"
 #include "test/test.h"
 
@@ -73,8 +74,8 @@ TEST_F(EventualsGrpcTest, MultipleHosts) {
       grpc::InsecureChannelCredentials(),
       pool.Borrow());
 
-  auto call = [&](auto&& host) {
-    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello", host)
+  auto call = [&](::grpc::ClientContext *context, auto&& host) {
+    return client.Call<Greeter, HelloRequest, HelloReply>("SayHello", context, host)
         | Then(Let([](auto& call) {
              HelloRequest request;
              request.set_name("Emily");
@@ -85,15 +86,21 @@ TEST_F(EventualsGrpcTest, MultipleHosts) {
            }));
   };
 
-  auto status = *call("cs.berkeley.edu");
+  {
+    ::grpc::ClientContext context;
+    auto status = *call(&context, "cs.berkeley.edu");
 
-  EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(status.ok());
+  }
 
   EXPECT_FALSE(berkeley_cancelled.get());
 
-  status = *call("cs.washington.edu");
+  {
+    ::grpc::ClientContext context;
+    auto status = *call(&context, "cs.washington.edu");
 
-  EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(status.ok());
+  }
 
   EXPECT_FALSE(washington_cancelled.get());
 }
