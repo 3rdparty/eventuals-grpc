@@ -1,7 +1,11 @@
 #pragma once
 
+#include <filesystem>
+
 #include "eventuals/grpc/server.h"
 #include "gtest/gtest.h"
+
+////////////////////////////////////////////////////////////////////////
 
 class EventualsGrpcTest : public ::testing::Test {
  protected:
@@ -22,6 +26,15 @@ class EventualsGrpcTest : public ::testing::Test {
   }
 };
 
+////////////////////////////////////////////////////////////////////////
+
+// Helper which returns a path for the specified runfile. This is a
+// wrapper around 'bazel::tools::cpp::runfiles::Runfiles' which
+// amongst other things uses 'std::filesystem::path' instead of just
+// 'std::string'.
+std::filesystem::path GetRunfilePathFor(const std::filesystem::path& runfile);
+
+////////////////////////////////////////////////////////////////////////
 
 // TODO(benh): Move to stout-stringify.
 template <typename T>
@@ -34,3 +47,5 @@ std::string stringify(const T& t) {
   }
   return out.str();
 }
+
+////////////////////////////////////////////////////////////////////////
