@@ -14,19 +14,21 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
-  
+
 jobs:
   build-and-test:
     name: Build and Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # We're not using Windows because of a build error.
-        # In future we gonna run this job for Windows too. 
         include:
-          - os: macos-latest
+          - os: "macos-latest"
+            # The MacOS runner doesn't have Docker installed, os can't run
+            # `dazel`. Fall back to `bazel` instead.
+            bazel-command: "bazel"
             bazel-config: ""
-          - os: ubuntu-latest
+          - os: "ubuntu-latest"
+            bazel-command: "dazel"
             bazel-config: "--config=asan"
 
     env:
@@ -40,21 +42,26 @@ jobs:
       # Checkout the repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
+
+      # Install Dazel, so that we use the same build tooling in our Actions as
+      # we do on our workstations.
+      - name: Install Dazel
+        run: sudo pip3 install dazel
 
       - name: Build
         run: |
-          bazel build \
-            ${BAZEL_CONFIG} \
+          ${{ matrix.bazel-command }} build \
+            ${{ matrix.bazel-config }} \
             --spawn_strategy=local \
             -c dbg \
             --strip="never" \
-            :grpc       
+            :grpc
 
       - name: Test
         run: |
-          bazel test \
-            ${BAZEL_CONFIG} \
+          ${{ matrix.bazel-command }} test \
+            ${{ matrix.bazel-config }} \
             --spawn_strategy=local \
             -c dbg \
             --strip="never" \
@@ -65,4 +72,4 @@ jobs:
 
       - name: Debug using tmate (if failure)
         if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3  
+        uses: mxschmitt/action-tmate@v3
