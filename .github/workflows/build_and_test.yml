@@ -22,17 +22,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: "macos-latest"
-            # The MacOS runner doesn't have Docker installed, os can't run
-            # `dazel`. Fall back to `bazel` instead.
+          - os: macos-latest
+            sudo-command: "sudo"
+            # The macos runner doesn't have `docker` installed, so can't run
+            # `dazel`. Fall back to `bazel`.
             bazel-command: "bazel"
             bazel-config: ""
-          - os: "ubuntu-latest"
+          - os: ubuntu-latest
+            sudo-command: "sudo"
             bazel-command: "dazel"
             bazel-config: "--config=asan"
-
-    env:
-      BAZEL_CONFIG: ${{ matrix.bazel-config }}
 
     defaults:
       run:
@@ -47,7 +46,7 @@ jobs:
       # Install Dazel, so that we use the same build tooling in our Actions as
       # we do on our workstations.
       - name: Install Dazel
-        run: sudo pip3 install dazel
+        run: ${{ matrix.sudo-command }} pip3 install dazel
 
       - name: Build
         run: |
